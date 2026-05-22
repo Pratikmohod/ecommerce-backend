@@ -99,7 +99,9 @@ DATABASES = {
     }
 }
 
-if config('DB_SSL', default=True, cast=bool):
+DB_SSL = config('DB_SSL', default='True')
+
+if DB_SSL.lower() == 'true':
     DATABASES['default']['OPTIONS'] = {
         'ssl': {'sslmode': 'REQUIRED'}
     }
@@ -151,6 +153,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default_Auto_field = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
     "https://yourfrontend.vercel.app",
 ]
 
