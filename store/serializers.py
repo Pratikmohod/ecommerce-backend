@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import Product, Category,Cart,CartItem
 from django.contrib.auth.models import User
-
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,8 +49,32 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username','email','password','password2']
         
     def validate(self,data):
+        # Password match validation
         if data['password'] != data['password2']:
-            raise serializers.ValidationError("Password do not Match.")
+            raise serializers.ValidationError({
+                "password" : "Passwords do not match."
+            })
+        
+        #username already exist
+        if User.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError({
+                 "username": "Username already exists."
+            })
+        
+        # Email already exists
+        if User.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError({
+                "email":"Email already exists."
+            })
+        
+        #Strong password validation
+        try:
+            validate_password(data['password'])
+        except ValidationError as e:
+            raise serializers.ValidationError({
+                "password": list(e.message)
+            })    
+
         return data
         
     def create(self,validated_data):
