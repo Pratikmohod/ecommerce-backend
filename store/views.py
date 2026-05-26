@@ -6,18 +6,48 @@ from .serializers import RegisterSerializer,UserSerializer
 from rest_framework import status
 from .models import Product, Category,Cart,CartItem,Order,OrderItem
 from .serializers import ProductSerializer,CategorySerializer,CartItemSerializer,CartSerializer
-
+from django.db.models import Q
 
 
 # Create your views here.
 @api_view(['GET'])
+@api_view(['GET'])
 def get_products(request):
+
+    #all products
+    products =Product.objects.all()
+
+    # CATEGORY FILTER
     category_id = request.GET.get("category")
+    
+    
     if category_id:
-        products = Product.objects.filter(category_id=category_id)
-    else:
-        products= Product.objects.all()
-    serializer = ProductSerializer(products,many=True)
+        products =products.filter(category_id=category_id)
+    
+    #Search
+    search = request.GET.get("search")
+
+    if search:
+        products = products.filter(
+            Q(name__icontains=search) |
+            Q(description__icontains=search)
+        )
+
+    #MIN price
+
+    min_price = request.GET.get("min_price")
+
+    if min_price:
+        products = products.filter(price__gte =min_price)
+
+    #Max price
+
+    max_price = request.GET.get("max_price")
+
+    if max_price:
+        products = products.filter(price__lte =max_price)
+    
+    serializer= ProductSerializer(products, many=True)
     return Response(serializer.data)
 
 
