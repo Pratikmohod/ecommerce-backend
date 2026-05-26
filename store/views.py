@@ -10,7 +10,7 @@ from django.db.models import Q
 
 
 # Create your views here.
-@api_view(['GET'])
+
 @api_view(['GET'])
 def get_products(request):
 
