@@ -7,12 +7,18 @@ from rest_framework import status
 from .models import Product, Category,Cart,CartItem,Order,OrderItem
 from .serializers import ProductSerializer,CategorySerializer,CartItemSerializer,CartSerializer
 from django.db.models import Q
-
+from django.core.cache import cache
 
 # Create your views here.
 
 @api_view(['GET'])
 def get_products(request):
+
+    cache_key = f"products_{request.GET.urlencode()}"
+
+    cached_data =cache.get(cache_key)
+    if cached_data:
+        return Response(cached_data)
 
     #all products
     products =Product.objects.all()
@@ -48,22 +54,35 @@ def get_products(request):
         products = products.filter(price__lte =max_price)
     
     serializer= ProductSerializer(products, many=True)
+    cache.set(cache_key, serializer.data, timeout=60 * 5)
     return Response(serializer.data)
 
 
 
 @api_view(['GET'])
 def get_product(request,pk):
+
+    cache_key = f"product_{pk}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return Response(cached_data)
     try:
         product=Product.objects.get(id=pk)
         serializer=ProductSerializer(product,context ={'request':request})
+        cache.set(cache_key, serializer.data, timeout=60 * 10)
         return Response(serializer.data)
     except Product.DoesNotExist:
         return Response({'error':'Product not found'}, status=404)
 @api_view(['GET'])
 def get_categories(request):
+    cached_data = cache.get("all_categories")
+
+    if cached_data:
+        return Response(cached_data)
     categories= Category.objects.all()
     serializer = CategorySerializer(categories,many=True)
+    cache.set("all_categories", serializer.data, timeout=60 * 60)
     return Response(serializer.data)
 
 @api_view(['GET'])

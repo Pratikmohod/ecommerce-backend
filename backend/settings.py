@@ -194,3 +194,10 @@ SIMPLE_JWT ={
 }
 
 
+#cache 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-ecommerce",
+    }
+}
