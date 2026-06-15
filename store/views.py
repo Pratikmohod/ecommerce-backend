@@ -96,7 +96,15 @@ def get_cart(request):
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
     product_id = request.data.get('product_id')
-    product = Product.objects.get(id=product_id)
+
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Product not found"},
+            status=404
+        )
+    
     cart,created = Cart.objects.get_or_create(user=request.user)
     item, created = CartItem.objects.get_or_create(cart=cart,product=product)
 
@@ -114,12 +122,12 @@ def update_cart_quantity(request):
         return Response({'error':'Item ID and quantity are required'},status=400)
     
     try:
-        item = CartItem.objects.get(id=item_id)
+        item = CartItem.objects.get(id=item_id, cart__user=request.user)
         if int(quantity)<1:
             item.delete()
             return Response({'error': 'Quantity must be at least 1'},status=400)
         
-        item.quantity =quantity
+        item.quantity = int(quantity)
         item.save()
         serializer=CartItemSerializer(item)
         return Response(serializer.data)
@@ -132,7 +140,7 @@ def update_cart_quantity(request):
 @permission_classes([IsAuthenticated])
 def remove_from_cart(request):
     item_id = request.data.get('item_id')
-    CartItem.objects.filter(id=item_id).delete()
+    CartItem.objects.filter(id=item_id, cart__user=request.user).delete()
     return Response({'message': 'Item remove from cart'})
 
 
