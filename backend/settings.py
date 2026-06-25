@@ -31,7 +31,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'ecommerce-backend-6o5n.onrender.com',
+    'ecommerce-backend-2dyt.onrender.com',
     'localhost',
     '127.0.0.1'
 ]
